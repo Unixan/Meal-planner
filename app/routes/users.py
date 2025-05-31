@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models.models import User
-from app.schemas.schemas import UserCreate, UserOut, UserLogin
+from app.models.models import User, Friendship
+from app.schemas.schemas import UserCreate, UserOut, UserLogin, FriendshipOut,FriendshipCreate
 from app.security import hash_password, verify_password
+from uuid import UUID
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -29,3 +30,33 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     if not db_user or not verify_password(user.password, str(db_user.password_hash)):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return {"message": "Login successful"}
+
+@router.post("/{user_id}/friends", response_model=FriendshipOut)
+def send_friend_request(user_id: UUID, request: FriendshipCreate, db: Session = Depends(get_db)):
+    if user_id == request.friend_id:
+        raise HTTPException(status_code=400, detail="You cannot friend yourself.")
+    
+    #Check if friend exists
+    target_user = db.query(User).filter(User.id == request.friend_id).first()
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    #Check for existing friendship
+    existing = db.query(Friendship).filter(
+        Friendship.user_id == user_id,
+        Friendship.friend_id == request.friend_id
+    ).first()
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Friend request already sent or already friends")
+    
+    #Create friendship request
+    friendship = Friendship(
+        user_id = user_id,
+        friend_id = request.friend_id,
+        status="pending"
+    )
+    db.add(friendship)
+    db.commit()
+    db.refresh(friendship)
+    return friendship

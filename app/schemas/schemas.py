@@ -1,4 +1,6 @@
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
+from enum import Enum
+from datetime import datetime
 import re
 from uuid import UUID
 
@@ -40,3 +42,22 @@ class UserOut(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+#FRIENDSHIPS
+
+class FriendshipStatus(str, Enum):
+    pending = "pending"
+    accepted = "accepted"
+    blocked = "blocked"
+
+class FriendshipCreate(BaseModel):
+    friend_id: UUID
+
+class FriendshipOut(BaseModel):
+    id: UUID
+    user_id: UUID
+    friend_id: UUID
+    status: FriendshipStatus
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
