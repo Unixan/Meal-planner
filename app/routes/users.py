@@ -9,6 +9,10 @@ from uuid import UUID
 router = APIRouter(prefix="/users", tags=["users"])
 
 
+@router.get("/", response_model=list[UserOut])
+def get_all_users(db: Session= Depends(get_db)):
+    return db.query(User).all()
+
 @router.post("/", response_model=UserOut)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     normalized_email = user.email.lower()

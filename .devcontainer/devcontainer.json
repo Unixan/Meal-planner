@@ -24,6 +24,5 @@
         "ab-498.pythonformat"
       ]
     }
-  },
-  "postCreateCommand": "apt-get update && apt-get install -y git"
+  }
 }
