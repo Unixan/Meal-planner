@@ -35,6 +35,7 @@ class UserCreate(BaseModel):
 class UserOut(BaseModel):
     id: UUID
     email: EmailStr
+    is_verified: bool
 
     model_config = ConfigDict(from_attributes=True)
 
