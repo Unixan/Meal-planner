@@ -28,7 +28,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed_pw = hash_password(user.password)
-    new_user = User(email=normalized_email, password_hash=hashed_pw)
+
+    username = user.username or normalized_email.split("@")[0]
+
+    new_user = User(email=normalized_email, password_hash=hashed_pw, username=username)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 from enum import Enum
+from typing import Optional
 from datetime import datetime
 import re
 from uuid import UUID
@@ -9,6 +10,7 @@ from uuid import UUID
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    username: Optional[str] = None
 
     @field_validator("password")
     @classmethod
@@ -30,6 +32,24 @@ class UserCreate(BaseModel):
             raise ValueError("Password must contain " + ", ".join(errors))
 
         return v
+
+
+    @field_validator("username")
+    def validate_username(cls, value):
+        if value is None:
+            return value
+
+        cleaned = value.strip()
+        letter_count = sum(1 for c in cleaned if c.isalpha())
+        if letter_count < 3:
+            raise ValueError("Username must contain at least 3 letters.")
+
+        for char in cleaned:
+            if not (char.isalpha() or char.isspace()):
+                raise ValueError("Username can only contain letters and spaces.")
+
+        return cleaned
+
 
 
 class UserOut(BaseModel):
